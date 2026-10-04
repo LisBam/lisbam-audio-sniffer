@@ -227,7 +227,11 @@ function walkFiles(dir, base) {
     // 5. 设置项
     const st = await swCdp.eval(`chrome.storage.local.get('settings').then(o => JSON.stringify(o.settings||{}))`, true);
     const settings = JSON.parse(st || '{}');
-    ok('设置项已写入默认值', settings.autoPopup === true && settings.minDurationSeconds === 3 && settings.sniffToast === true, st);
+    ok('设置项已写入默认值',
+      settings.autoPopup === true && settings.minPlaySeconds === 0 &&
+      settings.minDurationSeconds === 0 && settings.sniffToast === true, st);
+    ok('下载相关设置已写入默认值',
+      settings.saveAs === false && settings.subfolder === '音频下载', st);
     ok('录制相关设置已彻底移除', settings.recordMime === undefined && settings.recordBitrate === undefined, st);
 
   } catch (e) {

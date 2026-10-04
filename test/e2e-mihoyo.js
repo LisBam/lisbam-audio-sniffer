@@ -86,6 +86,17 @@ const CARD_PROBE = `(() => {
   const dlDir = path.join(profile, 'downloads');
   fs.mkdirSync(dlDir, { recursive: true });
 
+  // 用 profile 的 Preferences 指定下载目录。
+  // 不要用 CDP 的 Browser.setDownloadBehavior：实测它会劫持文件命名，
+  // 扩展传的 filename 会被忽略、子目录也不建，导致中文文件名与「音频下载」子目录测不出来。
+  const defDir = path.join(profile, 'profile', 'Default');
+  fs.mkdirSync(defDir, { recursive: true });
+  fs.writeFileSync(path.join(defDir, 'Preferences'), JSON.stringify({
+    download: { default_directory: dlDir, prompt_for_download: false, directory_upgrade: true },
+    savefile: { default_directory: dlDir },
+    profile: { default_content_setting_values: { automatic_downloads: 1 } }
+  }), 'utf8');
+
   const child = spawn(EDGE, [
     '--user-data-dir=' + path.join(profile, 'profile'),
     '--load-extension=' + EXT,
@@ -105,7 +116,6 @@ const CARD_PROBE = `(() => {
 
     browserCdp = new CDP(version.webSocketDebuggerUrl);
     await browserCdp.connect();
-    await browserCdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dlDir });
 
     let pageTarget = null, swTarget = null;
     for (let i = 0; i < 40; i++) {
@@ -201,6 +211,10 @@ const CARD_PROBE = `(() => {
       const dlRaw = await swCdp.eval(`chrome.downloads.search({}).then(r => JSON.stringify(r.map(x=>({s:x.state,b:x.bytesReceived,e:x.error&&x.error.current,f:x.filename}))))`, true);
       ok('语音文件真实下载落盘', files.some((f) => f.size > 1000),
         '文件: ' + JSON.stringify(files) + '\n          下载条目: ' + dlRaw);
+      // 真实站点上验证「中文文件名 + 默认子目录」确实生效（CDP 无法伪造这两点）
+      ok('落到「音频下载」子目录且文件名是语音名',
+        files.some((f) => /音频下载[\\/]/.test(f.rel) && /初次见面/.test(f.rel) && f.size > 1000),
+        '文件: ' + JSON.stringify(files));
     }
 
   } catch (e) {

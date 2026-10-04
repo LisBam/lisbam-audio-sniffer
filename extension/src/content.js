@@ -17,12 +17,14 @@
   const DEFAULT_SETTINGS = {
     autoPopup: true,
     autoCloseSeconds: 12,
-    minPlaySeconds: 2,
-    minDurationSeconds: 3,
+    minPlaySeconds: 0,
+    minDurationSeconds: 0,
     position: 'bottom-right',
     onlyTopFrame: true,
     showBadge: true,
-    sniffToast: true
+    sniffToast: true,
+    saveAs: false,
+    subfolder: '音频下载'
   };
 
   let settings = Object.assign({}, DEFAULT_SETTINGS);
@@ -369,8 +371,12 @@
     btn.disabled = false;
     if (resp && resp.ok) {
       btn.textContent = '已开始';
-      note('已开始下载：' + (resp.filename || item.title || ''));
+      note(resp.saveAs
+        ? '已弹出「另存为」对话框，请选择位置和文件名'
+        : '已开始下载：' + (resp.filename || item.title || ''));
       scheduleHide();
+      // 几秒后恢复成「下载」：想再存一份、或在「另存为」里点了取消，都能直接重来
+      setTimeout(() => { if (btn.textContent === '已开始') btn.textContent = '下载'; }, 4000);
     } else {
       btn.textContent = '下载';
       note('下载失败：' + ((resp && resp.error) || '未知原因'));
