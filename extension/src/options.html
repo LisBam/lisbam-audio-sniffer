@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>【聆竹】音频嗅探下载器 · 设置</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 60px;
+    font: 14px/1.65 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: #15171c; color: #e8ecf3;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 28px 0 10px; color: #cfd6e2; }
+  .lead { color: #98a1b0; font-size: 13px; margin: 0 0 8px; }
+  .card { background: #1e2129; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 16px 18px; }
+  .field { display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px dashed rgba(255,255,255,.07); }
+  .field:last-child { border-bottom: 0; }
+  .field .lbl { flex: 1; }
+  .field .lbl b { display: block; font-weight: 600; font-size: 13.5px; }
+  .field .lbl span { display: block; font-size: 11.5px; color: #8b93a2; margin-top: 1px; }
+  input[type=number], select {
+    background: #2a2e38; color: #e8ecf3; border: 1px solid rgba(255,255,255,.12);
+    border-radius: 7px; padding: 5px 8px; font: inherit; font-size: 12.5px; min-width: 106px;
+  }
+  input[type=checkbox] { width: 17px; height: 17px; accent-color: #2f6fed; }
+  .actions { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  button {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600;
+    background: #2f6fed; color: #fff; padding: 8px 18px; border-radius: 8px; font-size: 13px;
+  }
+  button:hover { background: #4a82f2; }
+  button.sec { background: rgba(255,255,255,.12); color: #dfe5ee; }
+  button.sec:hover { background: rgba(255,255,255,.2); }
+  #saved { color: #9fd6a8; font-size: 12.5px; opacity: 0; transition: opacity .2s; }
+  #saved.on { opacity: 1; }
+  ol, ul { padding-left: 20px; margin: 6px 0; }
+  li { margin: 4px 0; font-size: 13px; color: #cfd6e2; }
+  code { background: rgba(255,255,255,.09); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+  kbd { background: #2a2e38; border: 1px solid rgba(255,255,255,.16); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; font-size: 11.5px; }
+  .warn { color: #ffc46b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>【聆竹】音频嗅探下载器</h1>
+  <p class="lead">页面上一播放音频，右下角就会弹出一条简洁提示，点一下就下载。</p>
+
+  <h2>提示行为</h2>
+  <div class="card">
+    <div class="field">
+      <div class="lbl"><b>播放音频时自动弹出提示卡片</b><span>关闭后仍可在工具栏图标里手动下载</span></div>
+      <input type="checkbox" id="autoPopup" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>卡片自动消失时间（秒）</b><span>0 表示一直显示，直到手动关闭；鼠标悬停时不会消失</span></div>
+      <input type="number" id="autoCloseSeconds" min="0" max="600" step="1" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>连续播放多久才提示（秒）</b><span>用于过滤按钮音效、提示音等短音</span></div>
+      <input type="number" id="minPlaySeconds" min="0" max="60" step="1" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>音频总时长下限（秒）</b><span>声音总长小于该值不提示，0 表示不过滤；用 <code>new Audio()</code> 播放的内容不受此项限制</span></div>
+      <input type="number" id="minDurationSeconds" min="0" max="3600" step="1" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>纯嗅探兜底：也弹卡片</b><span>页面里连播放器元素都没有（纯 Web Audio / XHR 取音频）时，靠网络嗅探也能提示；页面本身能检测到播放时此项不会打扰你</span></div>
+      <input type="checkbox" id="sniffToast" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>卡片出现位置</b><span>也可以直接用鼠标把卡片拖到任意位置</span></div>
+      <select id="position">
+        <option value="bottom-right">右下角</option>
+        <option value="bottom-left">左下角</option>
+        <option value="top-right">右上角</option>
+        <option value="top-left">左上角</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="lbl"><b>只在页面主框架显示卡片</b><span>避免页面内嵌小窗口（iframe）里弹出看不清的卡片</span></div>
+      <input type="checkbox" id="onlyTopFrame" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>工具栏图标显示已发现数量</b><span>角标数字为当前标签页发现的音频条数</span></div>
+      <input type="checkbox" id="showBadge" />
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="save">保存设置</button>
+    <button class="sec" id="reset">恢复默认</button>
+    <span id="saved">已保存 ✓</span>
+  </div>
+
+  <h2>怎么用</h2>
+  <div class="card">
+    <ol>
+      <li>在网页上点播放（音乐、播客、视频里的声音都行）。</li>
+      <li>页面角落弹出一条简洁卡片，显示音频名字。</li>
+      <li>点 <b>下载</b>：文件会存到「下载 / 音频下载」文件夹。若该地址被服务器拒绝，扩展会自动改用页面内下载兜底。</li>
+      <li>没弹卡片？点一下工具栏图标，里面列着当前页发现的所有音频，可以逐条下载。</li>
+    </ol>
+  </div>
+
+  <h2>Edge 安装步骤（开发人员模式）</h2>
+  <div class="card">
+    <ol>
+      <li>地址栏输入 <code>edge://extensions/</code> 回车。</li>
+      <li>打开左下角的 <b>开发人员模式</b>。</li>
+      <li>点 <b>加载解压缩的扩展</b>，选择本扩展所在文件夹（含 <code>manifest.json</code> 的那一层），确定。</li>
+      <li>把「【聆竹】音频嗅探下载器」固定到工具栏：点地址栏右侧的拼图图标 → 点旁边的图钉。</li>
+      <li>装好后建议把 <code>edge://extensions/</code> 里本扩展的 <b>允许访问文件 URL</b> 打开，这样本地 html 文件也能用。</li>
+    </ol>
+    <p class="lead warn">注意：Chrome / Edge 应用商店之外的扩展重启浏览器不会失效，但如果把扩展文件夹移动或删除，扩展会失效，需要重新加载。</p>
+  </div>
+
+  <h2>已知限制</h2>
+  <div class="card">
+    <ul>
+      <li>只做下载，不做录音。</li>
+      <li>加密（DRM/Widevine）音频无法下载，这是浏览器安全限制。</li>
+      <li>网站若用 MSE 分片流播放（部分音乐/视频站），音频是边下边拼的，没有完整的文件地址，无法直接下载；这类条目会在工具栏面板里标注「分片流，无法直接下载」。</li>
+      <li>扩展内下载会忽略网站的防盗链 Referer，少数站点首次下载失败时会自动回退到页面内下载。</li>
+    </ul>
+  </div>
+</div>
+<script src="options.js"></script>
+</body>
+</html>
