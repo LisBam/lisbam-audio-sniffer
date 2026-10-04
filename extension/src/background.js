@@ -31,13 +31,24 @@ const STREAM_CT = [
 const DEFAULT_SETTINGS = {
   autoPopup: true,          // 播放音频时自动弹出简洁卡片
   autoCloseSeconds: 12,     // 卡片自动消失秒数（0 = 不自动消失）
-  minPlaySeconds: 2,        // 连续播放多少秒后才提示（过滤音效）
-  minDurationSeconds: 3,    // 媒体总时长小于该值不提示（0 = 不过滤）
+  minPlaySeconds: 0,        // 连续播放多少秒后才提示（0 = 不过滤）
+  minDurationSeconds: 0,    // 媒体总时长小于该值不提示（0 = 不过滤）
   position: 'bottom-right',
   onlyTopFrame: true,       // 在页面主框架显示卡片
   showBadge: true,          // 工具栏图标显示已发现数量
-  sniffToast: true          // 纯嗅探（没有媒体元素）时也弹卡片
+  sniffToast: true,         // 纯嗅探（没有媒体元素）时也弹卡片
+  saveAs: false,            // 下载前弹「另存为」对话框（可改文件名与文件夹）
+  subfolder: '音频下载'      // 浏览器下载目录下的子文件夹
 };
+
+/**
+ * 设置结构版本。
+ * v1.3.0 起把「连续播放多久才提示」「音频总时长下限」的默认值从 2/3 改成 0，
+ * 老用户 storage 里存着旧值，需要迁移一次，否则改了默认值他们也看不到变化。
+ */
+const SETTINGS_VERSION_KEY = 'settingsVersion';
+const SETTINGS_VERSION = 2;
+const LEGACY_DEFAULTS = { minPlaySeconds: 2, minDurationSeconds: 3 };
 
 /** 同一地址多久内不重复弹卡片 */
 const QUIET_MS = 5 * 60 * 1000;
@@ -85,10 +96,39 @@ async function getTabMedia(tabId) {
     .sort((a, b) => b.ts - a.ts);
 }
 
+/**
+ * 一次性设置迁移。
+ * 只有存的值「恰好还是旧默认值」时才改成新默认值 —— 说明用户没手动动过它；
+ * 用户自己调过的值（比如 5 秒）保持不动，不擅自覆盖。
+ */
+async function migrateSettings(stored) {
+  let ver = 1;
+  try {
+    const o = await chrome.storage.local.get(SETTINGS_VERSION_KEY);
+    ver = Number(o[SETTINGS_VERSION_KEY]) || 1;
+  } catch (e) {
+    return stored;
+  }
+  if (ver >= SETTINGS_VERSION) return stored;
+
+  const next = Object.assign({}, stored);
+  for (const k of Object.keys(LEGACY_DEFAULTS)) {
+    if (Number(next[k]) === LEGACY_DEFAULTS[k]) next[k] = 0;
+  }
+  try {
+    await chrome.storage.local.set({
+      [SETTINGS_KEY]: next,
+      [SETTINGS_VERSION_KEY]: SETTINGS_VERSION
+    });
+  } catch (e) { /* 迁移失败不影响使用，下次再试 */ }
+  return next;
+}
+
 async function getSettings() {
   try {
     const o = await chrome.storage.local.get(SETTINGS_KEY);
-    return Object.assign({}, DEFAULT_SETTINGS, o[SETTINGS_KEY] || {});
+    const stored = await migrateSettings(o[SETTINGS_KEY] || {});
+    return Object.assign({}, DEFAULT_SETTINGS, stored);
   } catch (e) {
     return Object.assign({}, DEFAULT_SETTINGS);
   }
@@ -334,11 +374,55 @@ function buildFilename(rec) {
   return base + '.' + ext;
 }
 
+/** Windows 保留设备名，直接当文件夹/文件名会被系统拒绝 */
+const WIN_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+
+/**
+ * 把用户填的「默认下载路径」整理成 downloads API 能接受的相对子目录。
+ *
+ * 硬限制（本机实测，不是猜的）：filename 只允许是浏览器下载目录**之内**的相对路径，
+ *   { filename: '音频下载/a.mp3' }      → ok，会创建子目录
+ *   { filename: 'D:\\Music\\a.mp3' }     → 报错 Invalid filename
+ *   { filename: '../escape/a.mp3' }      → 报错 Invalid filename
+ * 所以这里去掉盘符与开头的斜杠，并过滤掉 .. 之类的逃逸片段。
+ */
+function normalizeSubfolder(raw) {
+  let s = String(raw == null ? '' : raw).trim().replace(/\\/g, '/');
+  s = s.replace(/^[a-zA-Z]:/, '').replace(/^\/+/, '');
+  const parts = s.split('/')
+    .map((p) => p.trim()
+      .replace(/[<>:"|?*\u0000-\u001f]/g, '_')
+      .replace(/[. ]+$/, ''))                 // Windows 不允许结尾是点或空格
+    .filter((p) => p && p !== '.' && p !== '..')
+    .map((p) => (WIN_RESERVED.test(p) ? '_' + p : p));
+  return parts.join('/').slice(0, 100);
+}
+
 async function nativeDownload(rec) {
-  const filename = '音频下载/' + buildFilename(rec);
-  const downloadId = await chrome.downloads.download({ url: rec.url, filename, saveAs: false });
+  const s = await getSettings();
+  const dir = normalizeSubfolder(s.subfolder);
+  const base = buildFilename(rec);
+  const filename = dir ? dir + '/' + base : base;
+  const opts = {
+    url: rec.url,
+    filename,
+    saveAs: !!s.saveAs,          // true → 浏览器弹「另存为」，可改文件名与文件夹
+    conflictAction: 'uniquify'   // 重名时自动加 (1)(2)，不覆盖已有文件
+  };
+
+  let downloadId;
+  try {
+    downloadId = await chrome.downloads.download(opts);
+  } catch (e) {
+    // 子目录写法被判非法时退回只写文件名，别让整次下载因为一个路径设置而失败
+    if (dir && /invalid filename/i.test(String((e && e.message) || e))) {
+      downloadId = await chrome.downloads.download(Object.assign({}, opts, { filename: base }));
+    } else {
+      throw e;
+    }
+  }
   pendingDownloads.set(downloadId, rec);
-  return { ok: true, downloadId, filename };
+  return { ok: true, downloadId, filename, saveAs: !!s.saveAs };
 }
 
 chrome.downloads.onChanged.addListener(async (delta) => {
@@ -351,6 +435,11 @@ chrome.downloads.onChanged.addListener(async (delta) => {
   if (delta.state && delta.state.current === 'interrupted') {
     pendingDownloads.delete(delta.id);
     const err = (delta.error && delta.error.current) || 'UNKNOWN';
+    // 用户在「另存为」对话框里点了取消：不是故障，别弹「下载失败」吓人
+    if (/USER_CANCELED/i.test(err)) {
+      await notifyToast(rec.tabId, { type: 'notify', text: '已取消下载' });
+      return;
+    }
     // 服务器拒绝（多半是缺 Referer/Cookie）→ 回退到「页面代下」
     if (!rec.fellBack && /FORBIDDEN|UNAUTHORIZED|SERVER|NETWORK/i.test(err)) {
       rec.fellBack = true;
@@ -500,7 +589,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 chrome.runtime.onInstalled.addListener(async (details) => {
   const cur = await chrome.storage.local.get(SETTINGS_KEY);
   if (!cur[SETTINGS_KEY]) {
-    await chrome.storage.local.set({ [SETTINGS_KEY]: DEFAULT_SETTINGS });
+    await chrome.storage.local.set({
+      [SETTINGS_KEY]: DEFAULT_SETTINGS,
+      [SETTINGS_VERSION_KEY]: SETTINGS_VERSION
+    });
   }
   if (details.reason === 'install') {
     chrome.runtime.openOptionsPage();

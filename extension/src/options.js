@@ -3,15 +3,18 @@
 'use strict';
 
 const KEYS = [
+  'saveAs', 'subfolder',
   'autoPopup', 'autoCloseSeconds', 'minPlaySeconds', 'minDurationSeconds',
   'position', 'onlyTopFrame', 'showBadge', 'sniffToast'
 ];
 
 const DEFAULTS = {
+  saveAs: false,
+  subfolder: '音频下载',
   autoPopup: true,
   autoCloseSeconds: 12,
-  minPlaySeconds: 2,
-  minDurationSeconds: 3,
+  minPlaySeconds: 0,
+  minDurationSeconds: 0,
   position: 'bottom-right',
   onlyTopFrame: true,
   showBadge: true,

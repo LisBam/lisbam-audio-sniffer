@@ -111,13 +111,18 @@ async function fetchJson(url, tries) {
           fields: document.querySelectorAll('.field').length,
           autoPopup: (document.getElementById('autoPopup')||{}).checked,
           minDur: (document.getElementById('minDurationSeconds')||{}).value,
+          minPlay: (document.getElementById('minPlaySeconds')||{}).value,
           sniff: (document.getElementById('sniffToast')||{}).checked,
+          saveAs: (document.getElementById('saveAs')||{}).checked,
+          subfolder: (document.getElementById('subfolder')||{}).value,
           hasRecordUI: !!document.getElementById('recordMime') || !!document.getElementById('recordBitrate'),
           mentionsRecord: /录制|录音/.test(document.body.innerText) && !/不做录音/.test(document.body.innerText)
         })`);
         const s = JSON.parse(info);
         ok('设置页正常渲染', s.fields > 0 && /聆竹/.test(s.h1), info);
-        ok('设置页读到了默认值', s.autoPopup === true && s.minDur === '3' && s.sniff === true, info);
+        ok('设置页读到了新的默认值',
+          s.autoPopup === true && s.minDur === '0' && s.minPlay === '0' &&
+          s.sniff === true && s.saveAs === false && s.subfolder === '音频下载', info);
         ok('设置页已无录音相关项', s.hasRecordUI === false && s.mentionsRecord === false, info);
         ok('设置页无 JS 报错', c.errors.length === 0, JSON.stringify(c.errors));
       } else {

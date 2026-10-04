@@ -48,6 +48,20 @@
   <h1>【聆竹】音频嗅探下载器</h1>
   <p class="lead">页面上一播放音频，右下角就会弹出一条简洁提示，点一下就下载。</p>
 
+  <h2>下载</h2>
+  <div class="card">
+    <div class="field">
+      <div class="lbl"><b>下载前选择路径与文件名</b><span>打开后每次下载都会弹出系统的「另存为」对话框，可以自己挑文件夹、改文件名</span></div>
+      <input type="checkbox" id="saveAs" />
+    </div>
+    <div class="field">
+      <div class="lbl"><b>默认下载路径</b><span>浏览器下载目录<b>之内</b>的子文件夹，例如 <code>音频下载</code> 或 <code>音乐/语音</code>；留空表示直接存到下载目录根下</span></div>
+      <input type="text" id="subfolder" maxlength="100" placeholder="音频下载" spellcheck="false" />
+    </div>
+    <p class="lead warn" style="margin:6px 0 0">浏览器不允许扩展指定下载目录之外的绝对路径（比如 <code>D:\Music</code>），传了会被拒绝。要换盘符或根目录，请改浏览器自己的下载位置：Edge 里打开 <code>edge://settings/downloads</code>。</p>
+    <p class="lead" style="margin:6px 0 0">上面的「选择路径」对普通音频文件生效；网页内部实时合成的音频（下载时走页面内保存）不弹对话框，会直接存到下载目录。</p>
+  </div>
+
   <h2>提示行为</h2>
   <div class="card">
     <div class="field">
@@ -59,11 +73,11 @@
       <input type="number" id="autoCloseSeconds" min="0" max="600" step="1" />
     </div>
     <div class="field">
-      <div class="lbl"><b>连续播放多久才提示（秒）</b><span>用于过滤按钮音效、提示音等短音</span></div>
+      <div class="lbl"><b>连续播放多久才提示（秒）</b><span>0 = 不过滤（默认）；想过滤掉按钮音效、提示音等短音就填个 1~2</span></div>
       <input type="number" id="minPlaySeconds" min="0" max="60" step="1" />
     </div>
     <div class="field">
-      <div class="lbl"><b>音频总时长下限（秒）</b><span>声音总长小于该值不提示，0 表示不过滤；用 <code>new Audio()</code> 播放的内容不受此项限制</span></div>
+      <div class="lbl"><b>音频总时长下限（秒）</b><span>0 = 不过滤（默认）；用 <code>new Audio()</code> 播放的内容不受此项限制</span></div>
       <input type="number" id="minDurationSeconds" min="0" max="3600" step="1" />
     </div>
     <div class="field">
