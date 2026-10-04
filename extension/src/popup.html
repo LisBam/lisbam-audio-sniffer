@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    width: 340px; margin: 0; padding: 0;
+    font: 13px/1.5 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: #1c1e24; color: #eef1f6;
+  }
+  header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  header .t { flex: 1; font-weight: 600; font-size: 13px; }
+  header .t small { display: block; font-weight: 400; font-size: 10.5px; color: #98a1b0; }
+  .iconbtn {
+    appearance: none; border: 0; background: transparent; color: #98a1b0;
+    cursor: pointer; font-size: 15px; padding: 3px 6px; border-radius: 6px; line-height: 1;
+  }
+  .iconbtn:hover { background: rgba(255,255,255,.10); color: #fff; }
+  #list { max-height: 300px; overflow-y: auto; padding: 4px; }
+  .row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 8px;
+  }
+  .row:hover { background: rgba(255,255,255,.06); }
+  .meta { flex: 1; min-width: 0; }
+  .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: 10.5px; color: #98a1b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  button.act {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
+    background: #2f6fed; color: #fff; padding: 4px 12px; border-radius: 999px; flex: 0 0 auto;
+  }
+  button.act:hover { background: #4a82f2; }
+  button.act.ghost { background: rgba(255,255,255,.12); color: #dfe5ee; }
+  button.act.ghost:hover { background: rgba(255,255,255,.20); }
+  button.act[disabled] { opacity: .55; cursor: default; }
+  .empty { padding: 22px 16px; text-align: center; color: #98a1b0; font-size: 12px; }
+  .empty b { color: #cfd6e2; }
+  .tag { font-size: 10px; padding: 1px 6px; border-radius: 999px; background: rgba(124,176,255,.16); color: #9cc2ff; flex: 0 0 auto; }
+  footer { border-top: 1px solid rgba(255,255,255,.08); padding: 8px 10px; display: flex; gap: 8px; }
+  footer button {
+    flex: 1; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,.10); color: #dfe5ee; padding: 7px 8px; border-radius: 8px;
+  }
+  footer button:hover { background: rgba(255,255,255,.18); }
+  #tip { padding: 0 12px 9px; font-size: 10.5px; color: #8b93a2; }
+  #status { padding: 6px 12px; font-size: 11px; color: #ffb4b6; display: none; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="t">【聆竹】音频嗅探下载器<small id="pageinfo">当前标签页</small></div>
+    <button class="iconbtn" id="btnOptions" title="设置">⚙</button>
+    <button class="iconbtn" id="btnClear" title="清空列表">🗑</button>
+  </header>
+
+  <div id="status"></div>
+  <div id="list"><div class="empty">正在检测…</div></div>
+
+  <div id="tip">打开此面板不打断播放。文件存到 <b>下载/音频下载</b> 文件夹。</div>
+
+  <footer>
+    <button id="btnOptions2">⚙ 设置</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

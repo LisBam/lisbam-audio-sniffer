@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "【聆竹】音频嗅探下载器",
+  "version": "1.2.0",
+  "description": "检测网页中正在播放的音频，页面角落弹出简洁卡片，一键下载音频文件。支持 new Audio() 游离元素与 iframe 内播放。",
+  "minimum_chrome_version": "116",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvWmTUUBneiAhfeYOhQbUUd8XZSjfk96470m5koE2sBGA9SDditcPRyHx/ZZV7HgBSKfnwm15US4pfPkwbdmMoium6ynSJxjmc2MWuZTjXP3oNBybeisp1wwVZyjgYU5yfzh1TXLjRMz0/FHTHBo+e0uA92pfOnIHylSsSAsxN5EPNJocpXsEmNASoEvqC+ojy3WHXTVjHG/s6I2pP5YLQCZksAhmb4EcvOe/nxRVElOZy0eShF5O7veiD6XliSu+HwLhEfOV+BKzlTx500U6ZRht5w7YRLJKAuYZrWmFaTZVXeLqPdye1agkgKcyEVBi7H1PNk0MVb2MN1pDYfhvAwIDAQAB",
+
+  "permissions": [
+    "downloads",
+    "storage",
+    "tabs",
+    "webRequest",
+    "activeTab"
+  ],
+
+  "host_permissions": ["<all_urls>"],
+
+  "background": {
+    "service_worker": "src/background.js"
+  },
+
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "【聆竹】音频嗅探下载器",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/page-hook.js"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start"
+    }
+  ]
+}

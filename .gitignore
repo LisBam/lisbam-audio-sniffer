@@ -1,0 +1,11 @@
+# 打包产物：用 tools/build_zip.py 随时重新生成；发布建议传到 GitHub Release
+*.zip
+
+# 扩展签名密钥与安装包 —— 绝不能提交，密钥泄露后别人可以冒名发布你的扩展
+*.pem
+*.crx
+
+# 系统垃圾文件
+Thumbs.db
+Desktop.ini
+.DS_Store
