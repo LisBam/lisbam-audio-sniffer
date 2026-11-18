@@ -9,3 +9,41 @@
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Local development and personal collaboration files
+/.idea/
+/.vscode/
+/.vs/
+/.agents/
+/.claude/
+/.codex/
+/.dsh/
+/.trellis/
+/AGENTS.md
+/CLAUDE.md
+/项目专属AGENTS.md
+/临时反馈文档.md
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.bak
+
+# Local environment and signing credentials
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+export_credentials.cfg
+
+# Private recovery copies must never be published.
+/.repo-privacy-backup/
+
+# Restorable JavaScript development dependencies.
+/node_modules/
